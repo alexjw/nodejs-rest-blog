@@ -4,12 +4,32 @@ import bodyParser from 'body-parser'
 import mongoose from "mongoose";
 import * as path from "path";
 import {MyError} from "./src/utils";
+import multer from "multer";
 
 const app = express();
+
+const fileStorage = multer.diskStorage(
+    {
+        destination: (req, file, callback) => {
+            callback(null, 'public/images');
+        },
+        filename: (req, file, callback) => {
+            callback(null, new Date().toISOString().replace(/:/g, '.') + '-' + file.originalname);
+        }
+    }
+);
+
+const fileFilter = (req, file, callback) => {
+    if(file.mimeType === 'image/png' || file.mimeType === 'image/jpg' || file.mimeType === 'image/jpeg')
+        callback(null, true);
+    else
+        callback(null, false);
+};
 
 const CONNECTION_URL = 'mongodb+srv://user:nF6ouPL9lcB8jZ5x@freecodecamp-w89rl.gcp.mongodb.net/node-schwarzmuller-course-blog?retryWrites=true&w=majority';
 
 app.use(bodyParser.json());
+app.use(multer({ storage: fileStorage }).single('image'));
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 

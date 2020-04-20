@@ -106,3 +106,4 @@ dist
 .idea
 .dist
 /theDatabase.sqlite3
+/public/images/

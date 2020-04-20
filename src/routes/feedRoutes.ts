@@ -11,5 +11,6 @@ feedRoutes.post('/post',[
         body('content').trim().isLength({min:5})
     ],
     feedController.createPostPost);
+feedRoutes.get('/post/:id', feedController.postGet);
 
 export default feedRoutes;
