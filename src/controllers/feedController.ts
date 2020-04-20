@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction} from "express";
 import {validationResult} from "express-validator";
 import Post from "../models/post";
-import {MyError} from "../utils";
+import {MAIN_PATH, MyError} from "../utils";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -45,7 +45,7 @@ export const createPostPost = (req: Request, res: Response, next: NextFunction) 
     }).catch((e: MyError) => next(e));
 };
 
-export const updatePostPut = (req: Request, res: Response, next: NextFunction) => {
+export const postPut = (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if(!errors.isEmpty())
         throw new MyError('Validation failed, entered data is incorrect', 422);
@@ -74,7 +74,21 @@ export const updatePostPut = (req: Request, res: Response, next: NextFunction) =
         .catch((e: MyError) => next(e));
 };
 
+export const postDelete = (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+
+    Post.findById(id)
+        .then(post => {
+            if(!post)
+                throw new MyError('Could not find post', 404);
+            clearImage(post.imageUrl)
+            return Post.findByIdAndRemove(id);
+        })
+        .then(result => res.status(200).json({ message: 'Post Deleted'}))
+        .catch((e: MyError) => next(e));
+};
+
 const clearImage = (filePath: string) => {
-    filePath = path.join(__dirname, '..', filePath);
+    filePath = path.join(MAIN_PATH, filePath);
     fs.unlink(filePath, err => console.log(err));
 };
