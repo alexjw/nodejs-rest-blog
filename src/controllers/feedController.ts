@@ -11,8 +11,15 @@ interface postForm {
 }
 
 export const postsGet = (req: Request, res: Response, next: NextFunction) => {
-    Post.find()
-        .then(posts => res.status(200).json({ posts }))
+    const page = +req.query.page || 1;
+    const perPage = 2;
+    let totalItems = 0;
+    Post.find().countDocuments()
+        .then(count => {
+            totalItems = count;
+            return Post.find().skip((page - 1)* perPage).limit(perPage);
+        })
+        .then(posts => res.status(200).json({ posts, totalItems }))
         .catch(e => next(e));
 };
 
