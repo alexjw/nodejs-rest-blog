@@ -1,13 +1,10 @@
 import mongoose, {Document, Schema} from 'mongoose'
 
 export interface PostInterface extends Document {
-    password: string;
-    email: string;
-}
-
-export interface PostInput {
-    password: PostInterface['password'];
-    email: PostInterface['email'];
+    title: string;
+    imageUrl: string;
+    content: string;
+    creator: Object;
 }
 
 const postSchema = new Schema(
