@@ -6,6 +6,7 @@ import * as path from "path";
 import {MyError} from "./src/utils";
 import multer from "multer";
 import Path from "path";
+import authRoutes from "./src/routes/authRoutes";
 
 const app = express();
 
@@ -45,11 +46,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
 
 // Error handling
 app.use((error: MyError, req: Request, res: Response, next: NextFunction) => {
     console.log(error);
-    res.status(error.status).json({message: error.message});
+    res.status(error.status).json({message: error.message, errors: error.errors});
 });
 
 mongoose.connect(CONNECTION_URL)

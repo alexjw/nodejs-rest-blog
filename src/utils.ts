@@ -1,10 +1,12 @@
 import * as path from "path";
 
 export class MyError extends Error{
-    constructor(message: string, public status?: number) {
+    constructor(message: string, public status?: number, public errors?: any[]) {
         super(message);
         if(!status)
             this.status = 500;
+        if(!errors)
+            this.errors = [];
     }
 }
 
