@@ -12,8 +12,7 @@ const validations = [
         .custom((value, body) =>
             User.findOne({email: value})
                 .then(doc => doc ? Promise.reject('email already exists') : null)
-        )
-        .normalizeEmail(),
+        ),
     body('password')
         .trim()
         .isLength({min:5}),
@@ -24,5 +23,6 @@ const validations = [
 ];
 
 authRoutes.put('/signup', validations, authController.signUp);
+authRoutes.post('/login', authController.loginPost);
 
 export default authRoutes;

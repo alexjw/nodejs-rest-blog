@@ -1,10 +1,11 @@
 import mongoose, {Document, Schema} from 'mongoose'
 
 export interface UserInterface extends Document {
-    title: string;
-    imageUrl: string;
-    content: string;
-    creator: Object;
+    email: string;
+    password: string;
+    name: string;
+    status: string;
+    posts: Schema.Types.ObjectId;
 }
 
 const userSchema = new Schema(
