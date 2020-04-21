@@ -1,11 +1,12 @@
 import mongoose, {Document, Schema} from 'mongoose'
+import {PostInterface} from "./post";
 
 export interface UserInterface extends Document {
     email: string;
     password: string;
     name: string;
     status: string;
-    posts: Schema.Types.ObjectId;
+    posts: PostInterface[];
 }
 
 const userSchema = new Schema(
@@ -26,10 +27,10 @@ const userSchema = new Schema(
             type:String,
             default: 'I am new'
         },
-        posts: {
+        posts: [{
             type: Schema.Types.ObjectId,
             ref: 'Post'
-        }
+        }]
     }, { timestamps: true }
 );
 

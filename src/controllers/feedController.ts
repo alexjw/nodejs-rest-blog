@@ -1,13 +1,14 @@
 import {Request, Response, NextFunction} from "express";
 import {validationResult} from "express-validator";
 import Post from "../models/post";
-import {MAIN_PATH, MyError} from "../utils";
+import {MAIN_PATH, MyError, MyRequest} from "../utils";
 import * as fs from "fs";
 import * as path from "path";
+import User, {UserInterface} from "../models/user";
 
 interface postForm {
-    title: string,
-    content: string
+    title: string;
+    content: string;
 }
 
 export const postsGet = (req: Request, res: Response, next: NextFunction) => {
@@ -34,7 +35,7 @@ export const postGet = (req: Request, res: Response, next: NextFunction) => {
         .catch(e => next(e));
 };
 
-export const createPostPost = (req: Request, res: Response, next: NextFunction) => {
+export const createPostPost = (req: MyRequest, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if(!errors.isEmpty())
         throw new MyError('Validation failed, entered data is incorrect', 422);
@@ -42,17 +43,25 @@ export const createPostPost = (req: Request, res: Response, next: NextFunction) 
         throw new MyError('No image provided', 422);
     const imageUrl = req.file.path.replace(/\\/g, '/');
     const requestBody = req.body as postForm;
-    const post = new Post({ title: requestBody.title, content: requestBody.content, imageUrl, creator: { name: 'Alex' }});
-    post.save().then(result => {
-        return res.status(201)
+    const post = new Post({ title: requestBody.title, content: requestBody.content, imageUrl, creator: req.userId});
+    post.save()
+        .then(result => User.findById(req.userId))
+        .then(user => {
+            user.posts.push(post);
+            return user.save();
+        })
+        .then(user => {
+            return res.status(201)
             .json(
-                {message: 'Post created Successfully',
-                    post: result
+                {
+                    message: 'Post created Successfully',
+                    post: post,
+                    creator: { _id: user._id, name: user.name }
                 })
     }).catch((e: MyError) => next(e));
 };
 
-export const postPut = (req: Request, res: Response, next: NextFunction) => {
+export const postPut = (req: MyRequest, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if(!errors.isEmpty())
         throw new MyError('Validation failed, entered data is incorrect', 422);
@@ -70,6 +79,8 @@ export const postPut = (req: Request, res: Response, next: NextFunction) => {
         .then(post => {
             if(!post)
                 throw new MyError('Could not find post', 404);
+            if(post.creator.toString() !== req.userId)
+                throw new MyError('Not Authorized', 403);
             if(imageUrl !== post.imageUrl)
                 clearImage(post.imageUrl);
             post.title = title;
@@ -81,15 +92,23 @@ export const postPut = (req: Request, res: Response, next: NextFunction) => {
         .catch((e: MyError) => next(e));
 };
 
-export const postDelete = (req: Request, res: Response, next: NextFunction) => {
+export const postDelete = (req: MyRequest, res: Response, next: NextFunction) => {
     const id = req.params.id;
 
     Post.findById(id)
         .then(post => {
             if(!post)
                 throw new MyError('Could not find post', 404);
+            if(post.creator.toString() !== req.userId)
+                throw new MyError('Not Authorized', 403);
             clearImage(post.imageUrl)
             return Post.findByIdAndRemove(id);
+        })
+        .then(result => User.findById(req.userId))
+        .then(user => {
+            user.posts = user.posts.filter(post =>
+                post._id.toString() !== id);
+            return user.save();
         })
         .then(result => res.status(200).json({ message: 'Post Deleted'}))
         .catch((e: MyError) => next(e));

@@ -12,9 +12,9 @@ const validations = [
 
 // /feed
 feedRoutes.get('/posts', isAuthenticated, feedController.postsGet);
-feedRoutes.post('/post', validations, feedController.createPostPost);
-feedRoutes.get('/post/:id', feedController.postGet);
-feedRoutes.put('/post/:id', validations, feedController.postPut);
-feedRoutes.delete('/post/:id', feedController.postDelete);
+feedRoutes.post('/post', isAuthenticated, validations, feedController.createPostPost);
+feedRoutes.get('/post/:id', isAuthenticated, feedController.postGet);
+feedRoutes.put('/post/:id', isAuthenticated, validations, feedController.postPut);
+feedRoutes.delete('/post/:id', isAuthenticated, feedController.postDelete);
 
 export default feedRoutes;
